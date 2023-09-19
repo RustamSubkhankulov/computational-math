@@ -39,9 +39,15 @@ def build_graph(title: str, graph_name: str, graph_data):
     dots_num = len(graph_data[num_der_idx])
     step_values = get_step_values(dots_num)
 
-    plt.plot(step_values, graph_data[num_der_idx], ".-")
+    plt.plot(
+      step_values, 
+      graph_data[num_der_idx], 
+      ".-", 
+      label = "Method №{}".format(num_der_idx + 1)
+      )
+    plt.legend()
 
-  plt.savefig("img/{}.png".format(graph_name))
+  plt.savefig("res/{}.png".format(graph_name))
   plt.clf()
 
 #======================================
@@ -73,7 +79,7 @@ while line_idx < line_num and comput_res[line_idx][0] == "name":
 
   build_graph(
     str_formula + " at x = {}".format(x_value), 
-    str(graph_ct), 
+    str_formula, 
     graph_data
     )
 

@@ -1,4 +1,5 @@
 EXEC := comput
+
 BUILD_DIR := ./build
 RES_DIR   := ./res
 
@@ -20,13 +21,20 @@ CXXFLAGS += --std=c++20 -O2
 
 .PHONY: build run clean plots
 
-plots: run
+plots: $(RES_DIR)/comput_results.txt
 	./scripts/plot.py
 
-run: build
+$(RES_DIR)/comput_res.txt: run
+
+run: build $(RES_DIR)
 	$(BUILD_DIR)/$(EXEC)
 
-build: $(BUILD_DIR)/$(EXEC) $(RES_DIR)
+$(RES_DIR): 
+	- mkdir -p $(RES_DIR) 
+
+#--------------------------------------
+
+build: $(BUILD_DIR)/$(EXEC)
 
 $(BUILD_DIR)/$(EXEC): $(OBJS)
 	$(CXX) $(^) -o $(@) $(LDFLAGS)
@@ -34,9 +42,6 @@ $(BUILD_DIR)/$(EXEC): $(OBJS)
 $(BUILD_DIR)/%.cpp.o: %.cpp
 	mkdir -p $(dir $(@))
 	$(CXX) $(INC_FLAGS) $(DEP_FLAGS) $(CXXFLAGS) -c $(<) -o $(@)
-
-$(RES_DIR): 
-	- mkdir -p $(RES_DIR) 
 
 #--------------------------------------
 
