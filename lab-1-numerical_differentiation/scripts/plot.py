@@ -24,7 +24,7 @@ def calc_step(n: int) -> float:
 def get_step_values(n: int):
   return [calc_step(i) for i in range(n)]
 
-def build_graph(title: str, graph_data):
+def build_graph(title: str, graph_name: str, graph_data):
 
   plt.title(title)
 
@@ -41,7 +41,7 @@ def build_graph(title: str, graph_data):
 
     plt.plot(step_values, graph_data[num_der_idx], ".-")
 
-  plt.savefig("img/graph_{}.png".format(title))
+  plt.savefig("img/{}.png".format(graph_name))
   plt.clf()
 
 #======================================
@@ -57,6 +57,8 @@ comput_res = input[1:]
 line_idx = 0
 line_num = len(comput_res)
 
+graph_ct = 0
+
 while line_idx < line_num and comput_res[line_idx][0] == "name":
 
   str_formula = comput_res[line_idx][1]
@@ -69,4 +71,10 @@ while line_idx < line_num and comput_res[line_idx][0] == "name":
     graph_data.append(get_graph_data(comput_res[line_idx]))
     line_idx += 1
 
-  build_graph(str_formula + " at x = {}".format(x_value), graph_data)
+  build_graph(
+    str_formula + " at x = {}".format(x_value), 
+    str(graph_ct), 
+    graph_data
+    )
+
+  graph_ct += 1
