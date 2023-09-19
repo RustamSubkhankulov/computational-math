@@ -18,10 +18,15 @@ CXXFLAGS += --std=c++20 -O2
 
 #--------------------------------------
 
-build: $(BUILD_DIR)/$(EXEC) $(RES_DIR)
+.PHONY: build run clean plots
+
+plots: run
+	./scripts/plot.py
 
 run: build
 	$(BUILD_DIR)/$(EXEC)
+
+build: $(BUILD_DIR)/$(EXEC) $(RES_DIR)
 
 $(BUILD_DIR)/$(EXEC): $(OBJS)
 	$(CXX) $(^) -o $(@) $(LDFLAGS)
@@ -34,8 +39,6 @@ $(RES_DIR):
 	- mkdir -p $(RES_DIR) 
 
 #--------------------------------------
-
-.PHONY: clean 
 
 clean:
 	- rm -r $(BUILD_DIR) 
