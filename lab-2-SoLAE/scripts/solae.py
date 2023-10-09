@@ -5,11 +5,12 @@
 #======================================
 
 import math
-import scipy
 
-import sympy as sp
 import numpy as np
 import matplotlib.pyplot as plt
+
+from pathlib import Path
+from os import mkdir
 
 #======================================
 # Functions
@@ -22,7 +23,7 @@ import matplotlib.pyplot as plt
 
 def matrix_elem(i: int, j: int):
   """
-  Returns a(i,j) - coeff in i'th row and j'th column
+  Возвращает (i,j) элемент матрицы
   """
   if i == 99:
     return 1
@@ -36,25 +37,25 @@ def matrix_elem(i: int, j: int):
 
 def get_matrix():
   """
-  Returns matrix of the the system
+  Возвращает матрицу системы
   """
   return np.fromfunction(np.vectorize(matrix_elem), (100, 100), dtype=np.double)
 
 def f_elem(i: int):
   """
-  Returns f(i) - coeff on right side of system in i'th row
+  Возвращает i-тый элемент правой части системы
   """
   return (i + 1)
 
 def get_f():
   """
-  Returns right side of the system
+  Возвращает правую часть системы
   """
   return np.fromfunction(np.vectorize(f_elem), (100,), dtype = np.double)
 
 def get_extended_matrix(matrix, f):
   """
-  Returns extended matrix of the system
+  Строит расширенную матрицу системы по матрице и правой части
   """
   return np.hstack((matrix,np.array([f]).T))
 
@@ -66,9 +67,35 @@ def norm(vec):
 
 def lu_decomposition(matrix):
   """
-  LU-разложение
+  Doolittle LU-разложение
   """
-  permutation, lower, upper = scipy.linalg.lu(matrix)
+  # permutation, lower, upper = sp.linalg.lu(matrix)
+  # return lower, upper
+
+  n = len(matrix)
+
+  lower = np.full((n, n), 0.)
+  upper = np.full((n, n), 0.)
+
+  for i in range(n):
+    lower[i][i] = 1
+
+    if i != 0:
+      for j in range(i, n):
+        upper[i][j] = matrix[i][j]
+        for k in range(0, i):
+            upper[i][j] -= lower[i][k] * upper[k][j]
+
+      for j in range(i + 1, n):
+        lower[j][i] = matrix[j][i]
+        for k in range(0, i):
+          lower[j][i] -= lower[j][k] * upper[k][i]
+        lower[j][i] /= upper[i][i]
+    else:
+        for j in range(0, n):
+            upper[0, j] = matrix[0, j]
+            lower[j, 0] = matrix[j, 0] / matrix[0, 0]
+
   return lower, upper
 
 def ldu_decomposition(matrix):
@@ -83,6 +110,45 @@ def ldu_decomposition(matrix):
   upper = matrix - l
 
   return lower, diagonal, upper
+
+def build_graph(title: str, graph_name: str, graph_data):
+  """
+  Строит и сохраняет график
+  """
+
+  plt.title(title)
+
+  plt.xlabel("iteration number")
+  
+  plt.ylabel("err, log scale")
+  plt.yscale("log")
+
+  iterations = [i for i in range(len(graph_data))]
+  plt.plot(iterations, graph_data, ".-")
+
+  plt.savefig(f"res/{graph_name}.png")
+  plt.clf()
+
+def build_graph_multiple(title: str, graph_name: str, graph_data, labels):
+  """
+  Строит и сохраняет график с множественным значением серий данных
+  """
+
+  plt.title(title)
+
+  plt.xlabel("iteration number")
+  
+  plt.ylabel("err, log scale")
+  plt.yscale("log")
+
+  for ind in range(len(graph_data)):
+
+    iterations = [i for i in range(len(graph_data[ind]))]
+    plt.plot(iterations, graph_data[ind], ".-", label=labels[ind])
+    plt.legend()
+
+  plt.savefig(f"res/{graph_name}.png")
+  plt.clf()
 
 #--------------------------------------
 # Прямые методы
@@ -165,26 +231,42 @@ def simple_iteration_method(B, F, matrix, f, iterations_number):
 
 #-----
 # Метод Зейделя
-def seidel(matrix, f):
+def seidel(matrix, f, iterations_number):
 
   lower, diagonal, upper = ldu_decomposition(matrix)
 
-  B = -np.matmul(np.linalg.inv(lower + diagonal), upper)
-  F =  np.matmul(np.linalg.inv(lower + diagonal), f)
+  B = - np.matmul(np.linalg.inv(lower + diagonal), upper)
+  F =   np.matmul(np.linalg.inv(lower + diagonal), f)
+
+  return simple_iteration_method(B, F, matrix, f, iterations_number)
 
 #-----
 # Метод Якоби
-# def jacobi(matrix, f):
+def jacobi(matrix, f, iterations_number):
 
+  lower, diagonal, upper = ldu_decomposition(matrix)
+
+  B = - np.matmul(np.linalg.inv(diagonal), lower + upper)
+  F =   np.matmul(np.linalg.inv(diagonal), f)
+
+  return simple_iteration_method(B, F, matrix, f, iterations_number)
 
 #-----
-# Метод Зейделя
-# def upper_relaxation(matrix, f):
+# Метод Верхней релаксации - Successive Over Relaxation
+def successive_over_relaxation(matrix, f, iterations_number, w):
+
+  lower, diagonal, upper = ldu_decomposition(matrix)
+
+  B = - np.matmul(np.linalg.inv(diagonal + w * lower), (w - 1) * diagonal + w * upper)
+  F =   np.matmul(np.linalg.inv(diagonal + w * lower), f) * w
+
+  return simple_iteration_method(B, F, matrix, f, iterations_number)
 
 #======================================
 # Main 
 #======================================
 
+# Точность равенста невязки к нулем
 eps = 1e-6
 
 matrix = get_matrix()
@@ -194,16 +276,47 @@ f = get_f()
 # Прямые методы
 #-----
 
-#-----
 # Gauss
 x = gauss(matrix, f)
-assert norm(np.matmul(matrix,x) - f) < eps 
+assert(norm(np.matmul(matrix,x) - f) < eps)
 
-#-----
 # LU-decomposition
 x = lu(matrix, f)
-assert norm(np.matmul(matrix,x) - f) < eps
+assert(norm(np.matmul(matrix,x) - f) < eps)
 
 #-----
-# Итерационные методы методы
+# Итерационные методы
 #-----
+
+res_dir = Path("./res")
+if not res_dir.is_dir():
+  mkdir(res_dir)
+
+seidel_n = 20
+x, err = seidel(matrix, f, seidel_n)
+assert(norm(np.matmul(matrix, x) - f) < eps)
+build_graph(f"Seidel, number of iterations: {seidel_n}", "seigel", err)
+
+jacobi_n = 45
+x, err = jacobi(matrix, f, jacobi_n)
+assert(norm(np.matmul(matrix, x) - f) < eps)
+build_graph(f"Jacobi, number of iterations: {jacobi_n}", "jacobi", err)
+
+sor_n = 20
+errs = []
+labels = []
+
+for sor_w in np.arange(1., 2.2, 0.2):
+
+  sor_w = math.ceil(sor_w * 10) / 10
+  labels.append("w=" + str(sor_w))
+
+  x, err = successive_over_relaxation(matrix, f, sor_n, sor_w)
+  errs.append(err)
+
+build_graph_multiple(
+  f"SOR, number of iterations: {sor_n}", 
+  f"sor", 
+  errs, 
+  labels
+  )
