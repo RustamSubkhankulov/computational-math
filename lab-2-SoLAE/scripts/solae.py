@@ -295,7 +295,7 @@ if not res_dir.is_dir():
 seidel_n = 20
 x, err = seidel(matrix, f, seidel_n)
 assert(norm(np.matmul(matrix, x) - f) < eps)
-build_graph(f"Seidel, number of iterations: {seidel_n}", "seigel", err)
+build_graph(f"Seidel, number of iterations: {seidel_n}", "seidel", err)
 
 jacobi_n = 45
 x, err = jacobi(matrix, f, jacobi_n)
