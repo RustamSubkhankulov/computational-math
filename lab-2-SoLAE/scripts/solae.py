@@ -5,6 +5,7 @@
 #======================================
 
 import math
+import scipy
 
 import sympy as sp
 import numpy as np
@@ -64,35 +65,31 @@ def norm(vec):
   return np.max(np.abs(vec))
 
 def lu_decomposition(matrix):
- 
-  n = len(matrix)
-
-  lower = [[0 for x in range(n)] for y in range(n)]
-  upper = [[0 for x in range(n)] for y in range(n)]
-
-  for i in range(n):
-    for k in range(i, n):
-      sum = 0
-      for j in range(i):
-          sum += (lower[i][j] * upper[j][k])
-      upper[i][k] = matrix[i][k] - sum
-
-    for k in range(i, n):
-      if (i == k):
-          lower[i][i] = 1
-      else:
-        sum = 0
-        for j in range(i):
-            sum += (lower[k][j] * upper[j][i])
-
-        lower[k][i] = int((matrix[k][i] - sum) / upper[i][i])
-
+  """
+  LU-разложение
+  """
+  permutation, lower, upper = scipy.linalg.lu(matrix)
   return lower, upper
+
+def ldu_decomposition(matrix):
+  """
+  LDU-разложение  
+  """
+  u = np.triu(matrix)
+  l = np.tril(matrix)
+
+  lower = matrix - u
+  diagonal = l + u - matrix
+  upper = matrix - l
+
+  return lower, diagonal, upper
 
 #--------------------------------------
 # Прямые методы
 #--------------------------------------
 
+#-----
+# Метод Гаусса
 def gauss(matrix, f):
 
   ext = get_extended_matrix(matrix, f)  
@@ -116,29 +113,86 @@ def gauss(matrix, f):
 
   return ext[:,-1]
 
+#-----
+# LU-разложение
 def lu(matrix, f):
 
   n = len(matrix)
   lower, upper = lu_decomposition(matrix)
 
-  y = [0 for i in range(n)]
-  for i in range(n):
-    y[i] = f[i] - np.matmul(lower[i], y)
-
   x = [0 for i in range(n)]
-  for i in range(n - 1, -1, -1):
-    x[i] = (y[i]) - np.matmul(upper[i], x) / upper[i][i]
+  y = [0 for i in range(n)]
+
+  for i in range(1, n + 1):
+
+    summ = 0
+    for k in range(1, i):
+      summ += lower[i-1][k-1] * y[k-1]
+
+    y[i-1] = f[i-1] - summ
+
+  for i in range(n, 0, -1):
+
+    summ = 0
+    for k in range(n, i, -1):
+      summ += upper[i-1][k-1] * x[k-1]
+
+    x[i-1] = (y[i-1] - summ) / upper[i-1][i-1]
 
   return x;
+
+#--------------------------------------
+# Итерационные методы
+#--------------------------------------
+
+#-----
+# Метод простой итерации
+def simple_iteration_method(B, F, matrix, f, iterations_number):
+
+  n = len(F)
+
+  x = [0 for i in range(n)]
+  err = [0 for i in range(iterations_number)]
+
+  for iter in range(iterations_number):
+    
+    x = np.matmul(B, x) + F
+    
+    diff =  f - np.matmul(matrix, x)
+    err[iter] = norm(diff) 
+
+  return x, err
+
+#-----
+# Метод Зейделя
+def seidel(matrix, f):
+
+  lower, diagonal, upper = ldu_decomposition(matrix)
+
+  B = -np.matmul(np.linalg.inv(lower + diagonal), upper)
+  F =  np.matmul(np.linalg.inv(lower + diagonal), f)
+
+#-----
+# Метод Якоби
+# def jacobi(matrix, f):
+
+
+#-----
+# Метод Зейделя
+# def upper_relaxation(matrix, f):
 
 #======================================
 # Main 
 #======================================
 
-eps = 10**(-6)
+eps = 1e-6
 
 matrix = get_matrix()
 f = get_f()
+
+#-----
+# Прямые методы
+#-----
 
 #-----
 # Gauss
@@ -149,3 +203,7 @@ assert norm(np.matmul(matrix,x) - f) < eps
 # LU-decomposition
 x = lu(matrix, f)
 assert norm(np.matmul(matrix,x) - f) < eps
+
+#-----
+# Итерационные методы методы
+#-----
