@@ -1,5 +1,8 @@
 #!/usr/bin/python3
 
+# Non-linear equation
+# 2 * x ^2 + 5 * x - 3
+
 #======================================
 # Imports
 #======================================
@@ -65,7 +68,6 @@ def iterate(x_0: float, x_next_iteration, eps: float):
   prev = x_0
 
   next = x_next_iteration(prev)
-  print(next)
   iterations.append(next)
 
   while abs(next - prev) > eps:
@@ -73,7 +75,6 @@ def iterate(x_0: float, x_next_iteration, eps: float):
     prev = next 
 
     next = x_next_iteration(prev)
-    print(next)
     iterations.append(next)
 
   return iterations
