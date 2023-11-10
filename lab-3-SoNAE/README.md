@@ -88,7 +88,7 @@ def x_next_iteration_newton(x_n: float) -> float:
   return x_n - (f(x_n)) / (f_deriv(x_n))
 ```
 
-<img src="https://github.com/RustamSubkhankulov/computational-math/blob/main/lab-1-numerical_differentiation/img/NEWTON.png" alt="NEWTON" width="450"/>
+<img src="https://github.com/RustamSubkhankulov/computational-math/blob/main/lab-3-SoNAE/img/NEWTON.png" alt="NEWTON" width="450"/>
 
 #### СНАУ
 
