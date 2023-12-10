@@ -30,7 +30,7 @@ y_real = 308745538
 
 ### Использование
 Для того, чтобы воспроизвести результаты с построением графиков, необходимо:
- - Склонировать данный репозиторий и перейти в директорию <code>lab-2-SoLAE</code>
+ - Склонировать данный репозиторий и перейти в директорию <code>lab-4-interpolation</code>
    1. <code>git clone https://github.com/RustamSubkhankulov/computational-math.git</code>
    2. <code>cd lab-4-interpolation</code>
  - Воспользоваться <code>./scripts/interpolation.py</code> для интерполяции зависимости населения от года, чтобы провести вычисления и построить графики. 
