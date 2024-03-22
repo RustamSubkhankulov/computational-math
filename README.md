@@ -6,3 +6,4 @@ See subdirectories 'lab-N-example' for lab reports.
 3. Systems of nonlinear algebraic equations
 4. Interpolation
 5. Numerical integration
+6. Ordinary differential equation
