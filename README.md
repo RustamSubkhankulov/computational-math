@@ -7,3 +7,4 @@ See subdirectories 'lab-N-example' for lab reports.
 4. Interpolation
 5. Numerical integration
 6. Ordinary differential equation
+7. Stiff ordinary differential equation
