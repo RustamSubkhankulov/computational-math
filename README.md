@@ -1,6 +1,7 @@
 ### Overview
 This repository contains reports for laboratory work on the course of <b>Computational Mathematics</b> at <b>MIPT DREC</b>. 
 See subdirectories 'lab-N-example' for lab reports.
+- 10. Partial differential equations
 - 9. Tridiagonal sweep method
 - 8. Boundary value problem
 - 7. Stiff ordinary differential equation
